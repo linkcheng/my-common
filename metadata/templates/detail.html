@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+
+
+{% block content %}
+
+    <div id="searchResultDiv">
+
+        <div class="row">
+            <div class="col-xs-12">
+                <a href="javascript:history.go(-1);">返回上一页</a>
+                <div class="card">
+                    <div class="card-body">
+                        <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+
+                            <table class="table" id="DataTables_Table_0" >
+                                <thead>
+                                    <tr role="row">
+                                        <th>库名</th>
+                                        <th>表名</th>
+                                        <th>备注</th>
+                                        <th>表创建时间</th>
+                                        <th>表修改时间</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                {% for table in details %}
+                                    <tr>
+                                        <td>{{ table.table_schema }}</td>
+                                        <td>{{ table.table_name }}</td>
+                                        <td>{{ table.table_comment }}</td>
+                                        <td>{{ table.create_time }}</td>
+                                        <td>{{ table.update_time }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="5" >
+                                            <table class="table" >
+                                                <thead>
+                                                    <tr role="row" class="active">
+                                                        <th>字段名</th>
+                                                        <th>字段类型</th>
+                                                        <th>是否可以为空</th>
+                                                        <th>默认值</th>
+                                                        <th>备注</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% for col in table.column_info %}
+                                                    <tr>
+                                                        <td>{{ col.column_name }}</td>
+                                                        <td>{{ col.column_type }}</td>
+                                                        <td>{{ col.is_nullable }}</td>
+                                                        <td>{{ col.column_default }}</td>
+                                                        <td>{{ col.column_comment }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="5" >
+                                            <table class="table" >
+                                                <thead>
+                                                    <tr role="row" class="active">
+                                                        <th>索引名</th>
+                                                        <th>字段名</th>
+                                                        <th>字段顺序</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% for col in table.statistics_info %}
+                                                    <tr >
+                                                        <td>{{ col.index_name }}</td>
+                                                        <td>{{ col.column_name }}</td>
+                                                        <td>{{ col.seq_in_index }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="5" >
+                                            <table class="table" >
+                                                <thead>
+                                                    <tr role="row" class="active">
+                                                        <th colspan="2" >评论内容</th>
+                                                        <th>评论者</th>
+                                                        <th>评论时间</th>
+                                                        <th><a href="#" style="color: #00b4ef">
+                                                            <span onclick="showNewComment('{{ table.table_schema }}', '{{ table.table_name }}')">新增</span>
+                                                        </a></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% for col in table.comment %}
+                                                    <tr >
+                                                        <td colspan="2" >{{ col.content }}</td>
+                                                        <td>{{ col.user_name }}</td>
+                                                        <td>{{ col.updated_time }}</td>
+                                                        {% if request.user.id == col.user_id or request.user.is_superuser%}
+                                                            <td><a href="#"><span onclick="showUpdateComment('{{ table.table_schema }}', '{{ table.table_name }}', '{{ col.id }}', '{{ col.content }}')" class="glyphicon glyphicon-edit" aria-hidden="true"></span></a></td>
+                                                        {% endif %}
+                                                    </tr>
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="newCommentDiv" tabindex="-1" role="dialog" aria-labelledby="newCommentModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="newCommentModal">新增评论</h4>
+                    <p>给当前表添加评论或者备注信息</p>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="table_schema">库名</label>
+                            <input type="text" class="form-control" id="table_schema" readonly/>
+                        </div>
+                        <div class="form-group">
+                            <label for="table_name">表名</label>
+                            <input type="text" class="form-control" id="table_name" readonly/>
+                        </div>
+                        <div class="form-group">
+                            <label for="content">评论</label>
+                            <textarea class="form-control" id="content" rows="10" cols="30"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="newCommentConfirm()">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="updateCommentDiv" tabindex="-1" role="dialog" aria-labelledby="updateCommentModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="updateCommentModal">修改评论</h4>
+                    <p>修改当前评论或者备注信息</p>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="table_schema2">库名</label>
+                            <input type="text" class="form-control" id="table_schema2" readonly/>
+                        </div>
+                        <div class="form-group">
+                            <label for="table_name2">表名</label>
+                            <input type="text" class="form-control" id="table_name2" readonly/>
+                        </div>
+
+                        <input type="text" id="cid2" style="display: none" readonly/>
+                        <div class="form-group">
+                            <label for="content2">评论</label>
+                            <textarea class="form-control" id="content2" rows="10" cols="30"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="updateCommentConfirm()">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block script %}
+    function showNewComment(table_schema, table_name) {
+        $("#newCommentDiv").modal('show');
+        $("#table_schema").val(table_schema);
+        $("#table_name").val(table_name);
+    }
+
+    function newCommentConfirm() {
+        const table_schema = $("#table_schema").val();
+        const table_name = $("#table_name").val();
+        const content = $("#content").val();
+
+        $.ajax({
+            url: '/metadata/comment/',
+            type: 'POST',
+            data: {
+                'table_schema': table_schema,
+                'table_name': table_name,
+                'content': content,
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.status === 'success') {
+                    window.location.href = '/metadata/detail/'+table_schema+'/'+table_name
+                } else {
+                    alert(data.message)
+                }
+            }
+        })
+    }
+
+    function showUpdateComment(table_schema, table_name, cid, content) {
+        $("#updateCommentDiv").modal('show');
+        $("#table_schema2").val(table_schema);
+        $("#table_name2").val(table_name);
+        $("#cid2").val(cid);
+        $("#content2").val(content);
+    }
+
+    function updateCommentConfirm() {
+        const table_schema = $("#table_schema2").val();
+        const table_name = $("#table_name2").val();
+        const cid = $("#cid2").val();
+        const content = $("#content2").val();
+
+        $.ajax({
+            url: '/metadata/comment/',
+            type: 'PUT',
+            data: {
+                'cid': cid,
+                'content': content,
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.status === 'success') {
+                    window.location.href = '/metadata/detail/'+table_schema+'/'+table_name
+                } else {
+                    alert(data.message)
+                }
+            }
+        })
+    }
+{% endblock %}

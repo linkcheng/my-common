@@ -1,0 +1,15 @@
+.idea/
+.vscode/
+.pid/
+venv/
+.DS_Store
+*.pyc
+*.yaml
+*.yml
+*.rdb
+*.out
+*.pkl
+*logs/
+*.pid
+my_common/settings.py
+*/migrations/*

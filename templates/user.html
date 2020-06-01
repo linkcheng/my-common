@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+<div class="row">
+    <div class="col-xs-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="title">账号信息</div>
+                </div>
+            </div>
+            <div class="card-body">
+                <input type="text" style="display: none" id="userID" value="{{ uid }}"/>
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label for="inputName3" class="col-sm-2 control-label">姓　名</label>
+                        <div class="col-sm-6">
+                            <input type="text" class="form-control" readonly id="inputName3" value="{{ username }}"/>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputEmail3" class="col-sm-2 control-label">邮　箱</label>
+                        <div class="col-sm-6">
+                            <input type="email" class="form-control" readonly id="inputEmail3" placeholder="邮箱" value="{{ email }}"/>
+                            <input type="button" class="btn btn-primary" style="display: none" id="inputEmail3Confirm" value="确定" onclick="confirm_edit_user()"/>
+                            <input type="button" class="btn btn-default" style="display: none" id="inputEmail3Cancel" value="取消" onclick="cancel_edit_user()"/>
+                        </div>
+                        <input type="button" id="textEmail" class="btn btn-link" value="[修改邮箱]" onclick="edit_email()"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputPassword3" class="col-sm-2 control-label">密　码</label>
+                        <div class="col-sm-6">
+                            <input type="password" class="form-control" readonly id="inputPassword3" placeholder="密码" value="******"/>
+                        </div>
+                        <input type="button" id="textPassword" class="btn btn-link" value="[修改密码]" onclick="edit_pwd()"/>
+                    </div>
+
+                    <div id="div_edit_pwd" style="display: none">
+                        <div class="form-group">
+                            <label for="inputPassword31" class="col-sm-2 control-label"> </label>
+                            <div class="col-sm-6">
+                                <input type="password" class="form-control" id="inputPassword31" placeholder="请输入新密码"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputPassword32" class="col-sm-2 control-label">   </label>
+                            <div class="col-sm-6">
+                                <input type="password" class="form-control" id="inputPassword32" placeholder="请再次输入新密码" />
+                                <input type="button" class="btn btn-primary" id="inputPwd3Confirm" value="确定" onclick="confirm_edit_pwd()"/>
+                                <input type="button" class="btn btn-default" id="inputPwd3Cancel" value="取消" onclick="cancel_edit_pwd()"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block script %}
+
+    function edit_email() {
+        const email = $("#inputEmail3");
+        window.user_email = email.val();
+
+        email.removeAttr("readonly");
+        $("#inputEmail3Confirm").show();
+        $("#inputEmail3Cancel").show();
+    }
+
+    function cancel_edit_user() {
+        const email = $("#inputEmail3");
+        email.val(window.user_email);
+        email.attr("readonly", "readonly");
+        $("#inputEmail3Confirm").hide();
+        $("#inputEmail3Cancel").hide();
+    }
+
+    function confirm_edit_user() {
+        const email = $("#inputEmail3");
+        const email_val = email.val();
+        if (email_val.length === 0){
+            alert("邮箱不能为空");
+            return;
+        }
+        $.ajax({
+            url: "/user/info/",
+            type: "POST",
+            data: {
+                "uid": $("#userID").val(),
+                "email": email_val,
+            },
+            dataType: "json",
+            traditional: true,
+            success: function (data) {
+                if(data.status !== "success"){
+                    alert(data.message);
+                } else {
+                    $("#dropdownEmail2").text(email.val())
+                    email.attr("readonly", "readonly");
+                    $("#inputEmail3Confirm").hide();
+                    $("#inputEmail3Cancel").hide();
+                }
+            },
+        });
+    }
+
+    function edit_pwd() {
+        const pwd = $("#inputPassword3");
+        pwd.val("");
+        pwd.attr("placeholder", "请输入旧密码");
+        pwd.removeAttr("readonly");
+
+        $("#div_edit_pwd").show();
+    }
+
+    function cancel_edit_pwd() {
+        const pwd = $("#inputPassword3");
+        pwd.val("******");
+        pwd.attr("readonly", "readonly");
+        $("#div_edit_pwd").hide();
+    }
+
+    function check_pwd() {
+        const pwd = $("#inputPassword3");
+        const pwd_val = pwd.val();
+        if (pwd_val.length === 0){
+            alert("原密码不能为空");
+            return false;
+        }
+
+        const pwd1 = $("#inputPassword31");
+        const pwd1_val = pwd1.val();
+        if (pwd1_val.length === 0){
+            alert("新密码不能为空");
+            return false;
+        }
+
+        const pwd2 = $("#inputPassword32");
+        const pwd2_val = pwd2.val();
+        if (pwd2_val.length === 0 || pwd1_val !== pwd2_val){
+            alert("两次密码输入不一致");
+            return false;
+        }
+
+        if (pwd2_val.length < 8){
+            alert("密码长度不能少于 8 位");
+            return false;
+        }
+
+        return true;
+    }
+
+    function confirm_edit_pwd() {
+        ret = check_pwd();
+        if (!ret) {
+            return;
+        }
+
+        const orig_pwd = $("#inputPassword3").val();
+        const new_pwd1 = $("#inputPassword31").val();
+        const new_pwd2 = $("#inputPassword32").val();
+
+        $.ajax({
+            url: "/user/pwd/",
+            type: "POST",
+            data: {
+                "uid": $("#userID").val(),
+                "orig_pwd": encrypt(orig_pwd, "{{ key }}"),
+                "new_pwd1": encrypt(new_pwd1, "{{ key }}"),
+                "new_pwd2": encrypt(new_pwd2, "{{ key }}"),
+            },
+            dataType: "json",
+            traditional: true,
+            success: function (data) {
+                if(data.status !== "success"){
+                    alert(data.message);
+                } else {
+                    window.location.href = '/user/login/'
+                    cancel_edit_pwd();
+                }
+            },
+        });
+    }
+
+{% endblock %}

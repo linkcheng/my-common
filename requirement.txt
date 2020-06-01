@@ -1,0 +1,11 @@
+django==2.2.6
+pymysql==0.9.3
+pyDes==2.0.1
+raven==6.10.0
+redis==2.10.6
+django-celery==3.3.1
+django-redis==4.10.0
+requests==2.22.0
+gunicorn==19.9.0
+pandas==0.24.0
+jieba==0.39

@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block css %}
+
+    {#    .search {#}
+    {#    width: 100%;#}
+    {#    position: relative;#}
+    {#    display: flex;#}
+    {#    }#}
+    {##}
+    {#    .searchTerm {#}
+    {#    width: 100%;#}
+    {#    border: 3px solid #21A7F0;#}
+    {#    border-right: none;#}
+    {#    padding: 5px;#}
+    {#    height: 36px;#}
+    {#    border-radius: 5px 0 0 5px;#}
+    {#    outline: none;#}
+    {#    }#}
+    {##}
+    {#    .searchButton {#}
+    {#    width: 40px;#}
+    {#    height: 36px;#}
+    {#    border: 1px solid #21A7F0;#}
+    {#    background: #21A7F0;#}
+    {#    text-align: center;#}
+    {#    color: #fff;#}
+    {#    border-radius: 0 5px 5px 0;#}
+    {#    cursor: pointer;#}
+    {#    font-size: 20px;#}
+    {#    }#}
+
+    .search {
+    width: 100%;
+    position: relative;
+    display: flex;
+    }
+
+    .searchTerm {
+    width: 44%;
+    height: 36px;
+    border: 3px solid #21A7F0;
+    border-right: none;
+    padding: 5px;
+    border-radius: 5px 0 0 5px;
+    outline: none;
+    }
+
+
+    .searchButton {
+    width: 40px;
+    height: 36px;
+    border: 1px solid #21A7F0;
+    background: #21A7F0;
+    text-align: center;
+    color: #fff;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    font-size: 20px;
+    }
+
+
+    .selectDesign {
+    width: 28%;
+    height: 34px;
+    }
+
+    .select2-selection__rendered  {
+    width: 100%;
+    height: 34px;
+    background-color: white;
+    border-radius: 0 5px 5px 0;
+    border: 3px solid #21A7F0;
+    font-size: 13px;
+    padding: 5px;
+    }
+
+    .select2-selection--single {
+    width: 100%;
+    height: 999px;
+    border: white;
+    }
+
+
+{% endblock %}
+
+
+{% block content %}
+
+    <div id="searchResultDiv">
+        <div style="width: 50%">
+
+            <div class="search">
+
+                <select name="database_name" class="selectDesign" id="select-db">
+                    <option value="{{ dbName }}" data-toggle="dropdown">{{ dbName }}</option>
+
+                    <option value="全库检索" data-toggle="dropdown">全库检索</option>
+
+                </select>
+
+                <select name="table-name" class="selectDesign" id="select-type">
+                    <option value="表名" data-toggle="dropdown">表名</option>
+
+                    <option value="内容" data-toggle="dropdown">内容</option>
+
+                </select>
+                <input type="text" class="searchTerm" placeholder="表名或字段名或表名 字段名" id="searchInput" value="{{ key }}">
+                <button class="searchButton" onclick="search()">
+                    <i class="fa fa-search"></i>
+                </button>
+            </div>
+
+
+        </div>
+
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+
+                            <table class="table table-hover table-expandable" id="DataTables_Table_0">
+                                <thead>
+                                <tr role="row">
+                                    <th>库名</th>
+                                    <th>表名</th>
+                                    <th>备注</th>
+                                    <th>表创建时间</th>
+                                    <th>表修改时间</th>
+                                    <th>查看详细</th>
+                                </tr>
+                                </thead>
+
+                                <tbody>
+                                {% for table in search_list %}
+                                    <tr>
+                                        <td>{{ table.table_schema }}</td>
+                                        <td>{{ table.table_name }}</td>
+                                        <td>{{ table.table_comment }}</td>
+                                        <td>{{ table.create_time }}</td>
+                                        <td>{{ table.update_time }}</td>
+                                        <td>
+                                            <a href="/metadata/detail/{{ table.table_schema }}/{{ table.table_name }}"><span
+                                                    class="glyphicon glyphicon-folder-open"></span></a></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="5" style="background-color: #EAEAEA;">
+                                            <table class="table">
+                                                <thead>
+                                                <tr role="row" class="active">
+                                                    <th>字段名</th>
+                                                    <th>字段类型</th>
+                                                    <th>是否可以为空</th>
+                                                    <th>默认值</th>
+                                                    <th>备注</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% for col in table.column_info %}
+                                                    <tr>
+                                                        <td>{{ col.column_name }}</td>
+                                                        <td>{{ col.column_type }}</td>
+                                                        <td>{{ col.is_nullable }}</td>
+                                                        <td>{{ col.column_default }}</td>
+                                                        <td>{{ col.column_comment }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+
+                            <div class="bottom">
+                                <div class="dataTables_paginate paging_simple_numbers" id="DataTables_Table_0_paginate">
+                                    <ul class="pagination">
+                                        {% if paginator.has_previous %}
+                                            <li class="paginate_button" id="DataTables_Table_0_previous">
+                                                <a href="?key={{ key }}&p={{ paginator.previous_page_number }}&dbName={{ dbName }}&type={{ SType }}"
+                                                   aria-controls="DataTables_Table_0" data-dt-idx="0" tabindex="0">
+                                                    «</a>
+                                            </li>
+                                        {% endif %}
+
+                                        {% for i in paginator.page_range %}
+                                            {% if paginator.number == i %}
+                                                <li class="paginate_button active">
+                                                    <a href="#" aria-controls="DataTables_Table_0" data-dt-idx="{{ i }}"
+                                                       tabindex="0">{{ i }}</a>
+                                                </li>
+                                            {% else %}
+                                                <li class="paginate_button">
+                                                    <a href="?key={{ key }}&p={{ i }}&dbName={{ dbName }}&type={{ SType }}"
+                                                       aria-controls="DataTables_Table_0"
+                                                       data-dt-idx="{{ i }}" tabindex="0">{{ i }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        {% if paginator.has_next %}
+                                            <li class="paginate_button" id="DataTables_Table_0_next">
+                                                <a href="?key={{ key }}&p={{ paginator.previous_page_number }}&dbName={{ dbName }}&type={{ SType }}"
+                                                   aria-controls="DataTables_Table_0" data-dt-idx="7" tabindex="0">»</a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{#{% block script %}#}
+{#    function search() {#}
+{#        const key = $('#searchInput').val();#}
+{#        const url = '/metadata/result/?q=' + key;#}
+{#        window.location.href = url;#}
+{#    }#}
+{##}
+{#    $('#searchInput').keyup(function(event) {#}
+{#        if (event.which == 13) {#}
+{#            search();#}
+{#        }#}
+{#    });#}
+{##}
+{#{% endblock %}#}
+
+
+
+
+{% block script %}
+    var LoHref=location.href
+
+    getData1('/metadata/databases')
+    function getData1(url) {
+    $.ajax({
+    url: url,
+    dataType: 'json',
+    // res是后台成功返回的数据
+    success: res => {
+    // 调试
+    console.log(res)
+    res = res["res"]
+    for(var i = 0; i < res.length; i++) {
+    var item = res[i]
+    var obj = document.getElementById("select-db")
+    obj.options.add(new Option(item["dbName"],item["dbName"]));
+    };
+    }})}
+
+
+
+    //  --------------------------------------------------------------------------------------------
+
+
+    function search() {
+    const dbName =  $('#select-db option:selected').text();
+    const SType =  $('#select-type option:selected').text();
+
+    const key = $('#searchInput').val();
+    const url = '/metadata/result/?key=' + key + '&dbName=' + dbName + '&type=' + SType ;
+    window.location.href = url;
+    }
+
+    $('#searchInput').keyup(function(event) {
+    if (event.which == 13) {
+    search();
+    }
+    });
+
+{% endblock %}

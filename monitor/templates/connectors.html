@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block css %}
+
+
+{% endblock %}
+
+
+{% block content %}
+    <div class="page-title">
+        <span class="title">MySQL连接器</span>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="card">
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>名称</th>
+                                <th>最大任务数</th>
+                                <th>目标数据库</th>
+                                <th>数据库唯一标识</th>
+                                <th>连接器中的名称</th>
+                                <th>库过滤器</th>
+                                <th>表过滤器</th>
+                                <th>运行状态</th>
+                                <th>运行/暂停</th>
+                                <th>刷新</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    {% for c in connectors %}
+                        {% if c.status == 'RUNNING' %}
+                            <tr class="success" >
+                        {% else %}
+                            <tr class="active" >
+                        {% endif %}
+                                <td>{{ c.id }}</td>
+                                <td>{{ c.name }}</td>
+                                <td>{{ c.tasks_max }}</td>
+                                <td>{{ c.database }}</td>
+                                <td>{{ c.server_id }}</td>
+                                <td>{{ c.server_name }}</td>
+                            {% if c.schema_whitelist %}
+                                <td>白名单：{{ c.schema_whitelist }}</td>
+                            {% elif c.schema_blacklist %}
+                                <td>黑名单：{{ c.schema_blacklist }}</td>
+                            {% else %}
+                                <td>没有限制</td>
+                            {% endif %}
+                            {% if c.table_whitelist %}
+                                <td>白名单：{{ c.table_whitelist }}</td>
+                            {% elif c.table_blacklist %}
+                                <td>黑名单：{{ c.table_blacklist }}</td>
+                            {% else %}
+                                <td>没有限制</td>
+                            {% endif %}
+                                <td>{{ c.status }}</td>
+                            {% if writable == '1' and not c.is_deleted %}
+                                <td>
+                                {% if c.status == 'RUNNING'  %}
+                                    <a href="#"><span onclick="showPause({{ c.id }})" class="glyphicon glyphicon-pause" aria-hidden="true" data-toggle="modal"></span></a>
+                                {% else %}
+                                    <a href="#"><span onclick="showResume({{ c.id }})" class="glyphicon glyphicon-play" aria-hidden="true" data-toggle="modal"></span></a>
+                                {% endif %}
+                                </td>
+
+                                <td>
+                                    <a title="刷新" href="#"><span onclick="refreshStatus({{ c.id }})" class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
+                                </td>
+                            {% else %}
+                                <td></td>
+                                <td></td>
+                            {% endif %}
+
+                            {% if writable == '1' %}
+                                <td>
+                                    <a href="#"><span onclick="showCopy('{{ c.id }}')" class="glyphicon glyphicon-duplicate" aria-hidden="true" data-toggle="modal"></span></a>
+                                    <a href="#"><span onclick="showUpdate({{ c.id }})" class="glyphicon glyphicon-pencil" aria-hidden="true" data-toggle="modal"></span></a>
+                                {% if not c.is_deleted  %}
+                                    <a href="#"><span onclick="showDelete({{ c.id }})" class="glyphicon glyphicon-trash" aria-hidden="true" data-toggle="modal"></span></a>
+                                {% endif %}
+                                </td>
+                            {% endif %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="resumeDiv" tabindex="-1" role="dialog" aria-labelledby="resumeModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="resumeModal">运行/暂停</h4>
+                </div>
+                <div class="modal-body">
+                    <p>确定运行该连接器吗</p>
+                </div>
+                <input type="text" hidden id="resume_cid"/>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" onclick="resumeConfirm()">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="pauseDiv" tabindex="-1" role="dialog" aria-labelledby="pauseModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="pauseModal">运行/暂停</h4>
+                </div>
+                <div class="modal-body">
+                    <p>确定暂停当前连接器吗</p>
+                </div>
+                <input type="text" hidden id="pause_cid"/>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" onclick="pauseConfirm()">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteDiv" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">删除</h4>
+                </div>
+                <div class="modal-body">
+                    <p>确定要删除吗？</p>
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" id="delete_cid"/>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" onclick="deleteConfirm()">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block script %}
+    function showResume(cid) {
+        $("#resumeDiv").modal('show');
+        $("#resume_cid").val(cid);
+    }
+
+    function resumeConfirm() {
+        const cid = $("#resume_cid").val();
+
+        $.ajax({
+            url: '/monitor/connectors/',
+            type: 'PUT',
+            data: {
+                'cid': cid,
+                'action': 'resume'
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.status === 'success') {
+                    window.location.href = '/monitor/connectors/'
+                } else {
+                    alert(data.message)
+                }
+
+            }
+        })
+    }
+
+    function showPause(cid) {
+        $("#pauseDiv").modal('show');
+        $("#pause_cid").val(cid);
+    }
+
+    function pauseConfirm() {
+        const cid = $("#pause_cid").val();
+
+        $.ajax({
+            url: '/monitor/connectors/',
+            type: 'PUT',
+            data: {
+                'cid': cid,
+                'action': 'pause'
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.status === 'success') {
+                    window.location.href = '/monitor/connectors/'
+                } else {
+                    alert(data.message)
+                }
+
+            }
+        })
+    }
+
+    function refreshStatus(cid) {
+        $.ajax({
+            url: '/monitor/connectors/',
+            type: 'PUT',
+            data: {
+                'cid': cid,
+                'action': 'refresh'
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.status === 'success') {
+                    window.location.href = '/monitor/connectors/'
+                } else {
+                    alert(data.message)
+                }
+
+            }
+        })
+    }
+
+    function showDelete(mid) {
+        $("#deleteDiv").modal('show');
+        $("#delete_cid").val(mid);
+    }
+
+    function deleteConfirm() {
+        const cid = $("#delete_cid").val();
+
+        $.ajax({
+            url: '/monitor/connectors/',
+            type: 'DELETE',
+            data: {
+                'cid': cid,
+            },
+            dataType: 'json',
+            success: function () {
+                window.location.href = '/monitor/connectors/'
+            }
+        })
+    }
+
+    function showCopy(cid) {
+        window.location.href = '/monitor/connectors/c/' + cid
+    }
+
+    function showUpdate(cid) {
+        window.location.href = '/monitor/connectors/e/' + cid
+    }
+
+{% endblock %}

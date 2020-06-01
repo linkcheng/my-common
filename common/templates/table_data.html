@@ -1,0 +1,680 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+    <div class="page-title">
+        <span class="title" id="title-id"><a href="{{ path }}">{{ table_names.table_name }}</a></span>
+        <div class="description">{{ table_names.verbose_name }}</div>
+    </div>
+    <div class="search" style="float: right; margin: 20px;">
+        <form method="get" style="font-weight: 600;">
+            Search: <input type="text" name="query" id="search-id" value="{{ query }}"/>
+            <input type="submit" value="Submit" hidden/>
+        </form>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="card">
+                <div class="card-body">
+                    <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+
+                        <table class="table" id="DataTables_Table_0" style="width: 100%;">
+                            <thead>
+                                <tr role="row" id="row-id">
+                                {% for column in verbose_columns %}
+                                    {% if column == sort.field %}
+                                        <th>
+                                            {{ column }}
+                                            {% if query %}
+                                                <a href="{{ path }}?sort_field={{ sort.next_order }}{{ column }}&query={{ query }}">
+                                                    <span class="glyphicon glyphicon-sort-by-attributes{{ sort.order }}" aria-hidden="true"></span>
+                                                </a>
+                                            {% else %}
+                                                <a href="{{ path }}?sort_field={{ sort.next_order }}{{ column }}">
+                                                    <span class="glyphicon glyphicon-sort-by-attributes{{ sort.order }}" aria-hidden="true"></span>
+                                                </a>
+                                            {% endif %}
+                                        </th>
+                                    {% else %}
+                                        <th>
+                                            {{ column }}
+                                            {% if query %}
+                                                <a href="{{ path }}?sort_field={{ column }}&query={{ query }}">
+                                                    <span class="glyphicon glyphicon-sort" aria-hidden="true"></span>
+                                                </a>
+                                            {% else %}
+                                                <a href="{{ path }}?sort_field={{ column }}">
+                                                    <span class="glyphicon glyphicon-sort" aria-hidden="true"></span>
+                                                </a>
+                                            {% endif %}
+                                        </th>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if write_perm %}
+                                    <th>操作</th>
+                                {% endif %}
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                            {% for data in page_data %}
+                                <tr>
+                                    {% for d in data %}
+                                        <td>{{ d }}</td>
+                                    {% endfor %}
+                                    {% if write_perm %}
+                                        <td>
+                                            <a href="#">
+                                                <span id="show-update" class="glyphicon glyphicon-pencil" aria-hidden="true" data-toggle="modal"></span>
+                                            </a>
+                                            <a href="#">
+                                                <span id="show-delete" class="glyphicon glyphicon-trash" aria-hidden="true" data-toggle="modal"></span>
+                                            </a>
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+
+                        <div class="bottom">
+                            {% if write_perm %}
+                                <a href="#" style="font-weight: 900;">
+                                    <span id="show-add" class="glyphicon glyphicon-plus" aria-hidden="true" data-toggle="modal"></span>
+                                    添加记录
+                                </a>
+                            {% endif %}
+                            {% if query %}
+                                <div class="dataTables_paginate paging_simple_numbers" id="DataTables_Table_0_paginate">
+                                {% if sort.field %}
+                                    <ul class="pagination">
+                                        {% if pages.has_previous %}
+                                            <li class="paginate_button" id="DataTables_Table_0_previous">
+                                                <a href="?query={{ query }}&page={{ pages.previous_page}}&sort_field={{ sort.sort_field }}" aria-controls="DataTables_Table_0" data-dt-idx="0" tabindex="0">«</a>
+                                            </li>
+                                        {% endif %}
+                                        {% if pages.show_first_page %}
+                                            <li class="paginate_button">
+                                                <a href="?query={{ query }}&page=1&sort_field={{ sort.sort_field }}" aria-controls="DataTables_Table_0" data-dt-idx="1" tabindex="0">1</a>
+                                            </li>
+                                            <li>······</li>
+                                        {% endif %}
+
+                                        {% for i in pages.page_range %}
+                                            {% if pages.page_number == i %}
+                                                <li class="paginate_button active">
+                                                    <a href="?query={{ query }}&page={{ i }}&sort_field={{ sort.sort_field }}" aria-controls="DataTables_Table_0" data-dt-idx="{{ i }}" tabindex="0">{{ i }}</a>
+                                                </li>
+                                            {% else %}
+                                                <li class="paginate_button">
+                                                    <a href="?query={{ query }}&page={{ i }}&sort_field={{ sort.sort_field }}" aria-controls="DataTables_Table_0" data-dt-idx="{{ i }}" tabindex="0">{{ i }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        {% if pages.show_last_page %}
+                                            <li>······</li>
+                                            <li class="paginate_button">
+                                                <a href="?query={{ query }}&page={{ pages.sum_pages }}&sort_field={{ sort.sort_field }}" aria-controls="DataTables_Table_0" data-dt-idx="{{ pages.sum_pages }}" tabindex="0">{{ pages.sum_pages }}</a>
+                                            </li>
+                                        {% endif %}
+                                        {% if pages.has_next %}
+                                            <li class="paginate_button" id="DataTables_Table_0_next">
+                                                <a href="?query={{ query }}&page={{ pages.next_page}}&sort_field={{ sort.sort_field }}" aria-controls="DataTables_Table_0" data-dt-idx="7" tabindex="0">»</a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                {% else %}
+                                     <ul class="pagination">
+                                        {% if pages.has_previous %}
+                                            <li class="paginate_button" id="DataTables_Table_0_previous">
+                                                <a href="?query={{ query }}&page={{ pages.previous_page}}" aria-controls="DataTables_Table_0" data-dt-idx="0" tabindex="0">«</a>
+                                            </li>
+                                        {% endif %}
+                                        {% if pages.show_first_page %}
+                                            <li class="paginate_button">
+                                                <a href="?query={{ query }}&page=1" aria-controls="DataTables_Table_0" data-dt-idx="1" tabindex="0">1</a>
+                                            </li>
+                                            <li>······</li>
+                                        {% endif %}
+
+                                        {% for i in pages.page_range %}
+                                            {% if pages.page_number == i %}
+                                                <li class="paginate_button active">
+                                                    <a href="?query={{ query }}&page={{ i }}" aria-controls="DataTables_Table_0" data-dt-idx="{{ i }}" tabindex="0">{{ i }}</a>
+                                                </li>
+                                            {% else %}
+                                                <li class="paginate_button">
+                                                    <a href="?query={{ query }}&page={{ i }}" aria-controls="DataTables_Table_0" data-dt-idx="{{ i }}" tabindex="0">{{ i }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        {% if pages.show_last_page %}
+                                            <li>······</li>
+                                            <li class="paginate_button">
+                                                <a href="?query={{ query }}&page={{ pages.sum_pages }}" aria-controls="DataTables_Table_0" data-dt-idx="{{ pages.sum_pages }}" tabindex="0">{{ pages.sum_pages }}</a>
+                                            </li>
+                                        {% endif %}
+                                        {% if pages.has_next %}
+                                            <li class="paginate_button" id="DataTables_Table_0_next">
+                                                <a href="?query={{ query }}&page={{ pages.next_page}}" aria-controls="DataTables_Table_0" data-dt-idx="7" tabindex="0">»</a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                {% endif %}
+                                </div>
+                             {% else %}
+                                <div class="dataTables_paginate paging_simple_numbers" id="DataTables_Table_0_paginate">
+                                {% if sort.field %}
+                                    <ul class="pagination">
+                                    {% if pages.has_previous %}
+                                        <li class="paginate_button" id="DataTables_Table_0_previous">
+                                            <a href="?page={{ pages.previous_page}}&sort_field={{ sort.sort_field }}" aria-controls="DataTables_Table_0" data-dt-idx="0" tabindex="0">«</a>
+                                        </li>
+                                    {% endif %}
+                                    {% if pages.show_first_page %}
+                                        <li class="paginate_button">
+                                            <a href="?page=1&sort_field={{ sort.sort_field }}" aria-controls="DataTables_Table_0" data-dt-idx="1" tabindex="0">1</a>
+                                        </li>
+                                        <li>······</li>
+                                    {% endif %}
+
+                                    {% for i in pages.page_range %}
+                                        {% if pages.page_number == i %}
+                                            <li class="paginate_button active">
+                                                <a href="?page={{ i }}&sort_field={{ sort.sort_field }}" aria-controls="DataTables_Table_0" data-dt-idx="{{ i }}" tabindex="0">{{ i }}</a>
+                                            </li>
+                                        {% else %}
+                                            <li class="paginate_button">
+                                                <a href="?page={{ i }}&sort_field={{ sort.sort_field }}" aria-controls="DataTables_Table_0" data-dt-idx="{{ i }}" tabindex="0">{{ i }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if pages.show_last_page %}
+                                        <li>······</li>
+                                        <li class="paginate_button">
+                                            <a href="?page={{ pages.sum_pages }}&sort_field={{ sort.sort_field }}" aria-controls="DataTables_Table_0" data-dt-idx="{{ pages.sum_pages }}" tabindex="0">{{ pages.sum_pages }}</a>
+                                        </li>
+                                    {% endif %}
+                                    {% if pages.has_next %}
+                                        <li class="paginate_button" id="DataTables_Table_0_next">
+                                            <a href="?page={{ pages.next_page}}&sort_field={{ sort.sort_field }}" aria-controls="DataTables_Table_0" data-dt-idx="7" tabindex="0">»</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                                {% else %}
+                                     <ul class="pagination">
+                                    {% if pages.has_previous %}
+                                        <li class="paginate_button" id="DataTables_Table_0_previous">
+                                            <a href="?page={{ pages.previous_page}}" aria-controls="DataTables_Table_0" data-dt-idx="0" tabindex="0">«</a>
+                                        </li>
+                                    {% endif %}
+                                    {% if pages.show_first_page %}
+                                        <li class="paginate_button">
+                                            <a href="?page=1" aria-controls="DataTables_Table_0" data-dt-idx="1" tabindex="0">1</a>
+                                        </li>
+                                        <li>······</li>
+                                    {% endif %}
+
+                                    {% for i in pages.page_range %}
+                                        {% if pages.page_number == i %}
+                                            <li class="paginate_button active">
+                                                <a href="?page={{ i }}" aria-controls="DataTables_Table_0" data-dt-idx="{{ i }}" tabindex="0">{{ i }}</a>
+                                            </li>
+                                        {% else %}
+                                            <li class="paginate_button">
+                                                <a href="?page={{ i }}" aria-controls="DataTables_Table_0" data-dt-idx="{{ i }}" tabindex="0">{{ i }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if pages.show_last_page %}
+                                        <li>······</li>
+                                        <li class="paginate_button">
+                                            <a href="?page={{ pages.sum_pages }}" aria-controls="DataTables_Table_0" data-dt-idx="{{ pages.sum_pages }}" tabindex="0">{{ pages.sum_pages }}</a>
+                                        </li>
+                                    {% endif %}
+                                    {% if pages.has_next %}
+                                        <li class="paginate_button" id="DataTables_Table_0_next">
+                                            <a href="?page={{ pages.next_page}}" aria-controls="DataTables_Table_0" data-dt-idx="7" tabindex="0">»</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            <div class="clear"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="add-div" tabindex="-1" role="dialog" aria-labelledby="copy-modal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="copyMenuModal">新增记录</h4>
+                    <p>向数据库增加一条记录，id、created_time、updated_time字段为自动生成，不需人工添加</p>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        {% for column in verbose_columns %}
+                            <div class="form-group">
+                                <label for="add-{{ column }}-name">{{ column }}</label>
+                                <input type="text" class="form-control" id="add-{{ column }}-name" placeholder=""/>
+                            </div>
+                        {% endfor %}
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="add-confirm">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="update-div" tabindex="-1" role="dialog" aria-labelledby="update-modal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="update-modal">修改记录</h4>
+                    <p>修改当前记录，id、created_time字段不可人工改动，updated_time字段为自动生成，也不需人工改动</p>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        {% for column in verbose_columns %}
+                            <div class="form-group">
+                            <label for="update-{{ column }}-name">{{ column }}</label>
+                            <input type="text" class="form-control" id="update-{{ column }}-name" placeholder=""/>
+                        </div>
+                        {% endfor %}
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="update-confirm">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="delete-div" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">删除菜单</h4>
+                </div>
+                <div class="modal-body">
+                    <p>确定要删除吗？</p>
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" id="delete-id" value=""/>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="delete-confirm">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+    var log = console.log.bind(console)
+
+    var currentPath = function(){
+        return window.location.pathname.split('/')[2]
+    }
+
+    var getDateList = function(dateString){
+        var year = dateString.slice(0,4)
+        var month = dateString.slice(4,6)
+        var day = dateString.slice(6,8)
+        return [year, month, day]
+    }
+
+    var dateToString = function(dateString){
+        const [year, month, day] = getDateList(dateString)
+        return `${year}年${month}月${day}日`
+    }
+
+    var changeAddDate = function(e) {
+        var dateString = $(e.target).val()
+        log(dateString)
+        if (dateString != '') {
+            var date = dateToString(dateString)
+            $('#add-date-name').val(date)
+        } else {
+            $('#add-date-name').val('')
+        }
+    }
+
+    var changeUpdateDate = function(e) {
+        var dateStr = $(e.target).val()
+        var date = dateToString(dateStr)
+        log(date)
+        $('#update-date-name').val(date)
+    }
+
+    var show = function(e, operation) {
+        var columns = $('#row-id').find('th')
+        var columnsLength = columns.length - 1
+        var ele = $(e.target).parents('tr').find('td')
+        if (operation == 'delete'){
+            var val = ele.get(0).textContent
+            $("#delete-id").val(val)
+            return
+        }
+        for (i=0; i<=columnsLength; i++) {
+            var val = ele.get(i).textContent
+            var column = columns.get(i).textContent.replace(/^\s*|\s*$/g,"")
+            var columnId = '#' + operation + '-' + column + '-name'
+            $(columnId).val(val)
+            if (['id', 'created_time', 'updated_time', 'date'].includes(column)) {
+                $(columnId).attr('readonly', true)
+            }
+        }
+    }
+
+    var showAdd = function(e) {
+        $("#add-div").modal('show')
+
+        delArray = ['id', 'created_time', 'updated_time'], 'date'
+        for (i = 0;i < delArray.length; i++) {
+            var columnId = '#add-' + delArray[i] + '-name'
+            $(columnId).parent().remove()
+        }
+        $('#add-date-name').attr('readonly', true)
+    }
+
+    var showUpdate = function(e) {
+        $("#update-div").modal('show')
+        show(e, 'update')
+    }
+
+    var showDelete = function(e) {
+        $("#delete-div").modal('show')
+        show(e, 'delete')
+    }
+
+    var emptyAlert = function(field, value) {
+        if (value == '') {
+            alert(`${field}不能为空！`)
+            return false
+        }
+        return true
+    }
+
+    var lengthAlert = function(field, value, rightLength) {
+        log(value)
+        if (value != rightLength) {
+            alert(`${field}的长度必须等于${rightLength}.`)
+            return false
+        }
+        return true
+    }
+
+    var lengthArrayAlert = function(field, value, rightLengthArray) {
+        const [left, right] = rightLengthArray
+        log(value)
+        if (value > right | value < left) {
+            alert(`${field}的长度必须在[${left}, ${right}]之间.`)
+            return false
+        }
+        return true
+    }
+
+    var lengthAllowNullAlert = function(field, value, rightLength) {
+        if (value == '') {
+            return true
+        }
+        return lengthAlert(field, value, rightLength)
+    }
+
+    var lengthArrayAllowNullAlert = function(field, value, rightLengthArray) {
+        if (value == '') {
+            return true
+        }
+        return lengthArrayAlert(field, value, rightLengthArray)
+    }
+
+    var includeAlert = function(field, value, array) {
+        if (!array.includes(value)) {
+            alert(`${field}必须在[${array}]范围内.`)
+            return false
+        }
+        return true
+    }
+
+    var checkDate = function(data) {
+        if (!lengthAlert('date_str', data.date_str.length, 8)) {
+            return false
+        }
+        if (!includeAlert('weekday', parseInt(data['weekday']), [0, 1, 2, 3, 4, 5, 6])){
+            return false
+        }
+        if (!includeAlert('class', parseInt(data['class']), [0, 1, 2])){
+            return false
+        }
+        return true
+    }
+
+    var checkMobileAttribution = function(data){
+        if (!lengthAlert('number', data.number.length, 7)){
+            return false
+        }
+        if (!lengthAllowNullAlert('zip_code', data.zip_code.length, 6)){
+            return false
+        }
+        if (!lengthArrayAllowNullAlert('city_code', data.city_code.length, [3, 4])){
+            return false
+        }
+        if (!emptyAlert('full_province', data.full_province)){
+            return false
+        }
+        if (!emptyAlert('short_province', data.short_province)){
+            return false
+        }
+        if (!emptyAlert('full_city', data.full_city)){
+            return false
+        }
+        if (!emptyAlert('short_city', data.short_city)){
+            return false
+        }
+        if (!includeAlert('phone_type', data.phone_type, ['联通', '移动', '电信'])){
+            return false
+        }
+        return true
+    }
+
+    var checkIdAttribution = function(data){
+        if (!lengthAlert('number', data.number.length, 7)){
+            return false
+        }
+        if (!lengthArrayAllowNullAlert('city_code', data.city_code.length, [3, 4])){
+            return false
+        }
+        if (!emptyAlert('full_province', data.full_province)){
+            return false
+        }
+        if (!emptyAlert('short_province', data.short_province)){
+            return false
+        }
+        if (!emptyAlert('full_city', data.full_city)){
+            return false
+        }
+        if (!emptyAlert('short_city', data.short_city)){
+            return false
+        }
+        if (!emptyAlert('full_district', data.full_district)){
+            return false
+        }
+        if (!emptyAlert('short_district', data.short_district)){
+            return false
+        }
+        if (!includeAlert('level', data.level, ['province', 'city', 'district'])){
+            return false
+        }
+        return true
+    }
+
+    var check = function(common_type, data){
+        if (common_type == "date") {
+            return checkDate(data)
+        }
+
+        if (common_type == "mobileAttribution") {
+            return checkMobileAttribution(data)
+        }
+
+        if (common_type == "idAttribution") {
+            return checkIdAttribution(data)
+        }
+    }
+
+    var ajax = function(url, method, data){
+        const table_name = url.split('/')[2]
+        $.ajax({
+            url: url,
+            type: method,
+            data: data,
+            dataType: 'json',
+            success: function (data) {
+                if (data.status === 'success') {
+                    window.location.href = `/common/${table_name}/`
+                } else {
+                    alert(data.message)
+                }
+
+            }
+        })
+    }
+
+    var makeDateData = function(operation){
+        const dateString = $(`#${operation}-date_str-name`).val();
+        const class_ = $(`#${operation}-class-name`).val();
+        const weekday = $(`#${operation}-weekday-name`).val();
+        const [year, month, day] = getDateList(dateString)
+        const url = '/common/date/'
+        const data = {
+            'date_str': dateString,
+            'class': parseInt(class_),
+            'weekday': weekday,
+            'date': `${year}-${month}-${day}`
+        }
+        return [url, data]
+    }
+
+    var makeMobileData = function(operation){
+        const number = $(`#${operation}-number-name`).val();
+        const city_code = $(`#${operation}-city_code-name`).val();
+        const zip_code = $(`#${operation}-zip_code-name`).val();
+        const full_city = $(`#${operation}-full_city-name`).val();
+        const full_province = $(`#${operation}-full_province-name`).val();
+        const short_city = $(`#${operation}-short_city-name`).val();
+        const short_province = $(`#${operation}-short_province-name`).val();
+        const phone_type = $(`#${operation}-phone_type-name`).val();
+        const url = '/common/mobileAttribution/'
+        const data = {
+            'number': number,
+            'city_code': city_code,
+            'zip_code': zip_code,
+            'full_city': full_city,
+            'full_province': full_province,
+            'short_city': short_city,
+            'short_province': short_province,
+            'phone_type': phone_type,
+        }
+        return [url, data]
+    }
+
+    var makeIdData = function(operation){
+        const number = $(`#${operation}-number-name`).val();
+        const city_code = $(`#${operation}-city_code-name`).val();
+        const full_district = $(`#${operation}-full_district-name`).val();
+        const full_city = $(`#${operation}-full_city-name`).val();
+        const full_province = $(`#${operation}-full_province-name`).val();
+        const short_city = $(`#${operation}-short_city-name`).val();
+        const short_province = $(`#${operation}-short_province-name`).val();
+        const short_district = $(`#${operation}-short_district-name`).val();
+        const level = $(`#${operation}-level-name`).val();
+
+        const url = '/common/idAttribution/'
+        const data = {
+            'number': number,
+            'city_code': city_code,
+            'full_city': full_city,
+            'full_province': full_province,
+            'short_city': short_city,
+            'short_province': short_province,
+            'full_district': full_district,
+            'short_district': short_district,
+            'level': level
+        }
+        return [url, data]
+    }
+
+    var makeData = function(operation) {
+        const path = currentPath()
+        var data
+
+        if (path == 'date'){
+            data = makeDateData(operation)
+        } else if (path == 'idAttribution'){
+            data = makeIdData(operation)
+        } else {
+            data = makeMobileData(operation)
+        }
+        log(data)
+        return data
+    }
+
+    var addConfirm = function () {
+        const [url, data] = makeData('add')
+        if (check(currentPath(), data)) {
+            ajax(url, 'POST', data)
+        }
+    }
+
+    var updateConfirm = function() {
+        const index = $('#update-id-name').val();
+        const [url, data] = makeData('update')
+        const new_url = url + index + '/';
+        log(check(currentPath(), data))
+        if (check(currentPath(), data)) {
+            ajax(new_url, 'PUT', data)
+        }
+    }
+
+    var deleteConfirm = function(e) {
+        const path = currentPath()
+        var ele = $(e.target).parents('tr').find('td')
+        log(ele)
+        const index = $("#delete-id").val();
+        const url = `/common/${path}/`
+        const data = {
+            'id': parseInt(index)
+        }
+        ajax(url, 'DELETE', data)
+    }
+
+    var __main = function(){
+        $('#show-add').on('click', showAdd)
+        $('#show-update').on('click', showUpdate)
+        $('#show-delete').on('click', showDelete)
+
+        $('#add-confirm').on('click', addConfirm)
+        $('#update-confirm').on('click', updateConfirm)
+        $('#delete-confirm').on('click', deleteConfirm)
+
+        $('#update-date_str-name').on('blur', changeUpdateDate)
+        $('#add-date_str-name').on('blur', changeAddDate)
+    }
+
+    __main()
+
+{% endblock %}

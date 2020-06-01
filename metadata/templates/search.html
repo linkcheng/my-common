@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+
+
+
+
+{% block css %}
+
+    .search {
+    width: 100%;
+    position: relative;
+    display: flex;
+    }
+
+    .searchTerm {
+    width: 44%;
+    height: 36px;
+    border: 3px solid #21A7F0;
+    border-right: none;
+    padding: 5px;
+    border-radius: 5px 0 0 5px;
+    outline: none;
+    }
+
+
+    .searchButton {
+    width: 40px;
+    height: 36px;
+    border: 1px solid #21A7F0;
+    background: #21A7F0;
+    text-align: center;
+    color: #fff;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    font-size: 20px;
+    }
+
+
+    .selectDesign {
+    width: 28%;
+    height: 34px;
+    }
+
+    .select2-selection__rendered  {
+    width: 100%;
+    height: 34px;
+    background-color: white;
+    border-radius: 0 5px 5px 0;
+    border: 3px solid #21A7F0;
+    font-size: 13px;
+    padding: 5px;
+    }
+
+    .select2-selection--single {
+    width: 100%;
+    height: 999px;
+    border: white;
+    }
+
+    .wrap{
+    width: 50%;
+    position: absolute;
+    top: 20%;
+    left: 52%;
+    transform: translate(-50%, -50%);
+    }
+
+{% endblock %}
+
+
+{% block content %}
+    <div id="searchDiv">
+        <div class="page-title">
+            <p class="title" style="text-align:center;">元数据搜索</p>
+        </div>
+
+        <div class="wrap">
+
+            <div class="search">
+
+                <select name="database_name" class="selectDesign" id="select-db">
+                    <option value="全库检索" data-toggle="dropdown">全库检索</option>
+
+                </select>
+
+                <select name="table-name" class="selectDesign" id="select-type">
+                    <option value="表名" data-toggle="dropdown">表名</option>
+
+                    <option value="内容" data-toggle="dropdown">内容</option>
+
+                </select>
+
+
+                <input type="text" class="searchTerm" placeholder="表名或字段名或表名 字段名" id="searchInput">
+                <button class="searchButton" onclick="search()">
+                    <i class="fa fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}kan'chu
+
+
+
+{% block script %}
+    getData1('/metadata/databases')
+    function getData1(url) {
+    $.ajax({
+    url: url,
+    dataType: 'json',
+    // res是后台成功返回的数据
+    success: res => {
+    // 调试
+    console.log(res)
+    res = res["res"]
+    for(var i = 0; i < res.length; i++) {
+    var item = res[i]
+    var obj = document.getElementById("select-db")
+    obj.options.add(new Option(item["dbName"],item["dbName"]));
+    };
+    }})}
+
+
+
+    //  --------------------------------------------------------------------------------------------
+
+
+    function search() {
+    const dbName =  $('#select-db option:selected').text();
+    const SType =  $('#select-type option:selected').text();
+
+    const key = $('#searchInput').val();
+    const url = '/metadata/result/?key=' + key + '&dbName=' + dbName + '&type=' + SType ;
+    window.location.href = url;
+    }
+
+    $('#searchInput').keyup(function(event) {
+    if (event.which == 13) {
+    search();
+    }
+    });
+{% endblock %}
+
+
+
+

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="page-title">
+        <span class="title">操作日志</span>
+        <div class="description">所有用户操作日志</div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="card">
+                <div class="card-body">
+                    <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+
+                        <table class="table" id="DataTables_Table_0" style="width: 100%;">
+                            <thead>
+                                <tr role="row">
+                                    <th>用户名</th>
+                                    <th>请求类型</th>
+                                    <th>请求地址</th>
+                                    <th>用户IP</th>
+                                    <th>请求时间</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                            {% for i in log_list %}
+                                <tr>
+                                    <td>{{ i.username }}</td>
+                                    <td>{{ i.method }}</td>
+                                    <td>{{ i.url }}</td>
+                                    <td>{{ i.ip }}</td>
+                                    <td>{{ i.created_time }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+
+                        <div class="bottom">
+                            <div class="dataTables_paginate paging_simple_numbers" id="DataTables_Table_0_paginate">
+                                <ul class="pagination">
+                                    {% if paginator.has_previous %}
+                                        <li class="paginate_button" id="DataTables_Table_0_previous">
+                                            <a href="?page={{ paginator.previous_page_number}}" aria-controls="DataTables_Table_0" data-dt-idx="0" tabindex="0">«</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for i in paginator.page_range %}
+                                        {% if paginator.number == i %}
+                                            <li class="paginate_button active">
+                                                <a href="#" aria-controls="DataTables_Table_0" data-dt-idx="{{ i }}" tabindex="0">{{ i }}</a>
+                                            </li>
+                                        {% else %}
+                                            <li class="paginate_button">
+                                                <a href="?page={{ i }}" aria-controls="DataTables_Table_0" data-dt-idx="{{ i }}" tabindex="0">{{ i }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if paginator.has_next %}
+                                        <li class="paginate_button" id="DataTables_Table_0_next">
+                                            <a href="?page={{ paginator.next_page_number}}" aria-controls="DataTables_Table_0" data-dt-idx="7" tabindex="0">»</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            <div class="clear"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}

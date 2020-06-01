@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+    <div class="page-title">
+        <span class="title">菜单管理</span>
+        <div class="description">配置菜单名、称样式以及链接地址等</div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="card">
+                <div class="card-body">
+                    <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+
+                        <table class="table" id="DataTables_Table_0" style="width: 100%;">
+                            <thead>
+                                <tr role="row">
+                                    <th>菜单ID</th>
+                                    <th>名称</th>
+                                    <th>样式</th>
+                                    <th>样式名</th>
+                                    <th>父级菜单ID</th>
+                                    <th>序号</th>
+                                    <th>路由地址</th>
+                                    <th>创建时间</th>
+                                    <th>修改时间</th>
+                                    <th>是否已删除</th>
+                                    {% if writable == '1' %}
+                                        <th>操作</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                            {% for i in menu_list %}
+                                <tr>
+                                    <td>{{ i.id }}</td>
+                                    <td>{{ i.name }}</td>
+                                    <td><span class="{{ i.icon_code }}"></span></td>
+                                    <td>{{ i.icon_code }}</td>
+                                    <td>{{ i.parent_id }}</td>
+                                    <td>{{ i.order }}</td>
+                                    <td>{{ i.menu_url }}</td>
+                                    <td>{{ i.created_time }}</td>
+                                    <td>{{ i.updated_time }}</td>
+                                    <td>{{ i.is_deleted }}</td>
+                                    {% if writable == '1' %}
+                                        <td >
+                                            <a href="#"><span onclick="showCopyMenu('{{i.name}}', '{{i.icon_code}}', {{i.parent_id}}, {{i.order}}, '{{i.menu_url}}')"
+                                                              class="glyphicon glyphicon-duplicate" aria-hidden="true" data-toggle="modal"></span></a>
+                                            <a href="#"><span onclick="showUpdateMenu({{ i.id }}, '{{i.name}}', '{{i.icon_code}}', {{i.parent_id}}, {{i.order}}, '{{i.menu_url}}', '{{i.is_deleted}}')"
+                                                              class="glyphicon glyphicon-pencil" aria-hidden="true" data-toggle="modal"></span></a>
+                                            {% if not i.is_deleted %}
+                                            <a href="#"><span onclick="showDeleteMenu({{ i.id }})" class="glyphicon glyphicon-trash" aria-hidden="true" data-toggle="modal"></span></a>
+                                            {% endif %}
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+
+                        <div class="bottom">
+                            <div class="dataTables_paginate paging_simple_numbers" id="DataTables_Table_0_paginate">
+                                <ul class="pagination">
+                                    {% if menu_list.has_previous %}
+                                        <li class="paginate_button" id="DataTables_Table_0_previous">
+                                            <a href="?page={{ menu_list.previous_page_number}}" aria-controls="DataTables_Table_0" data-dt-idx="0" tabindex="0">«</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for i in menu_list.paginator.page_range %}
+                                        {% if menu_list.number == i %}
+                                            <li class="paginate_button active">
+                                                <a href="?page={{ i }}" aria-controls="DataTables_Table_0" data-dt-idx="{{ i }}" tabindex="0">{{ i }}</a>
+                                            </li>
+                                        {% else %}
+                                            <li class="paginate_button">
+                                                <a href="?page={{ i }}" aria-controls="DataTables_Table_0" data-dt-idx="{{ i }}" tabindex="0">{{ i }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if menu_list.has_next %}
+                                        <li class="paginate_button" id="DataTables_Table_0_next">
+                                            <a href="?page={{ menu_list.next_page_number}}" aria-controls="DataTables_Table_0" data-dt-idx="7" tabindex="0">»</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            <div class="clear"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="copyMenuDiv" tabindex="-1" role="dialog" aria-labelledby="copyMenuModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="copyMenuModal">复制菜单</h4>
+                    <p>复制菜单代表新增一条数据，名称、样式名以及路由地址应该做出适当修改</p>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="menuName">名称*</label>
+                            <input type="text" class="form-control" id="menuName"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="menuParentId">父级菜单ID*</label>
+                            <input type="text" class="form-control" id="menuParentId" placeholder="上级菜单ID，顶级菜单为 0"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="menuIcon">样式名</label>
+                            <input type="text" class="form-control" id="menuIcon" placeholder="顶级菜单时为必填"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="menuOrder">序号*</label>
+                            <input type="text" class="form-control" id="menuOrder" placeholder="菜单展示顺序，数字越大越靠前"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="menuUrl">路由地址</label>
+                            <input type="text" class="form-control" id="menuUrl" placeholder="菜单跳转的地址，包含子菜单的时候可以为空"/>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" onclick="copyMenuConfirm()">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="updateMenuDiv" tabindex="-1" role="dialog" aria-labelledby="updateMenuModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="updateMenuModal">修改菜单</h4>
+                    <p>修改菜单单代表修改当前数据，名称、样式名以及路由地址应该是必填项</p>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="menuID2">菜单ID</label>
+                            <input type="text" class="form-control" id="menuID2"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="menuName">名称*</label>
+                            <input type="text" class="form-control" id="menuName2"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="menuParentId">父级菜单ID*</label>
+                            <input type="text" class="form-control" id="menuParentId2" placeholder="上级菜单ID，顶级菜单为 0"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="menuIcon">样式名</label>
+                            <input type="text" class="form-control" id="menuIcon2" placeholder="顶级菜单时为必填"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="menuOrder">序号*</label>
+                            <input type="text" class="form-control" id="menuOrder2" placeholder="菜单展示顺序，数字越大越靠前"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="menuUrl">路由地址</label>
+                            <input type="text" class="form-control" id="menuUrl2" placeholder="菜单跳转的地址，包含子菜单的时候可以为空"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="menuUrl">是否有效</label>
+                            <div>
+                                <div class="radio3 radio-check radio-inline">
+                                  <input type="radio" id="radioActive" name="isActiveRadio" value="1" />
+                                  <label for="radioActive">
+                                    有效
+                                  </label>
+                                </div>
+                                <div class="radio3 radio-check radio-inline">
+                                  <input type="radio" id="radioInactive" name="isActiveRadio" value="0" />
+                                  <label for="radioInactive">
+                                    无效
+                                  </label>
+                                </div>
+                              </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" onclick="updateMenuConfirm()">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteMenuDiv" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">删除菜单</h4>
+                </div>
+                <div class="modal-body">
+                    <p>确定要删除吗？</p>
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" id="deleteMenuID" value=""/>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" onclick="deleteMenuConfirm()">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+
+{% block script %}
+    function showDeleteMenu(mid) {
+        $("#deleteMenuDiv").modal('show');
+        $("#deleteMenuID").val(mid);
+    }
+
+    function deleteMenuConfirm() {
+        const mid = $("#deleteMenuID").val();
+
+        $.ajax({
+            url: '/user/menu/',
+            type: 'DELETE',
+            data: {
+                'id': parseInt(mid),
+            },
+            dataType: 'json',
+            success: function () {
+                window.location.href = '/user/menu/'
+            }
+        })
+    }
+
+    function showCopyMenu(name, icon, parent_id, order, url) {
+        $("#copyMenuDiv").modal('show');
+
+        $("#menuName").val(name);
+        $("#menuParentId").val(parent_id);
+        $("#menuIcon").val(icon);
+        $("#menuOrder").val(order);
+        $("#menuUrl").val(url);
+    }
+
+    function checkMenu(name, parent_id, order) {
+        if(name.length < 1) {
+            alert('名称未填')
+            return false;
+        }
+
+        if(parent_id.length < 1) {
+            parent_id = 0;
+
+            if(icon.length < 1) {
+                alert('顶级菜单必须有样式')
+                return false;
+            }
+        }
+
+        if(order.length < 1) {
+            alert('序号未填')
+            return false;
+        }
+        return true;
+    }
+
+    function copyMenuConfirm() {
+        const name = $("#menuName").val();
+        const icon = $("#menuIcon").val();
+        const parent_id = $("#menuParentId").val();
+        const order = $("#menuOrder").val();
+        const menu_url = $("#menuUrl").val();
+
+        if (!checkMenu(name, parent_id, order)) {
+            return;
+        }
+
+        const parent_id_i = parseInt(parent_id)
+        const order_i = parseInt(order)
+
+        $.ajax({
+            url: '/user/menu/',
+            type: 'POST',
+            data: {
+                'name': name,
+                'icon_code': icon,
+                'parent_id': parent_id_i,
+                'order': order_i,
+                'menu_url': menu_url,
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.status === 'success') {
+                    window.location.href = '/user/menu/'
+                } else {
+                    alert(data.message)
+                }
+
+            }
+        })
+    }
+
+    function showUpdateMenu(mid, name, icon, parent_id, order, url, is_deleted) {
+        $("#updateMenuDiv").modal('show');
+
+        $("#menuID2").val(mid);
+        $("#menuName2").val(name);
+        $("#menuParentId2").val(parent_id);
+        $("#menuIcon2").val(icon);
+        $("#menuOrder2").val(order);
+        $("#menuUrl2").val(url);
+        if (is_deleted === 'True') {
+            $("#radioInactive").prop('checked', true);
+        } else {
+            $("#radioActive").prop('checked', true);
+        }
+    }
+
+    function updateMenuConfirm() {
+        const mid = $("#menuID2").val();
+        const name = $("#menuName2").val();
+        const icon = $("#menuIcon2").val();
+        const parent_id = $("#menuParentId2").val();
+        const order = $("#menuOrder2").val();
+        const menu_url = $("#menuUrl2").val();
+        const is_active = $('input[name="isActiveRadio"]:checked').val();
+
+
+        if (!checkMenu(name, parent_id, order)) {
+            return;
+        }
+
+        const parent_id_i = parseInt(parent_id);
+        const order_i = parseInt(order);
+        const is_deleted = Number(!Boolean(parseInt(is_active)));
+        const url = '/user/menu/' + mid + '/';
+
+        $.ajax({
+            url: url,
+            type: 'PUT',
+            data: {
+                'name': name,
+                'icon_code': icon,
+                'parent_id': parent_id_i,
+                'order': order_i,
+                'menu_url': menu_url,
+                'is_deleted': is_deleted,
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.status === 'success') {
+                    window.location.href = '/user/menu/'
+                } else {
+                    alert(data.message)
+                }
+
+            }
+        })
+
+    }
+
+{% endblock %}

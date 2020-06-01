@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="col-xs-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <span class="title">Dashboard</span>
+                    <div class="description"></div>
+                </div>
+
+            </div>
+
+            <div class="card-body">
+                <div class="row no-margin">
+                    <div class="col-sm-6">
+                        <div class="card primary">
+                            <div class="card-jumbotron">
+                                <h1>Hello, {{ username }}</h1>
+                                <h3>欢迎来到数据管理后台.</h3>
+                            </div>
+                            <div class="line-gray"></div>
+                            <div class="card-body">
+                                <h4>当前时间</h4>
+                                <div id="showTime"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="card">
+                            <div class="card-jumbotron no-padding">
+                                <img src="/static/img/thumbnails/picjumbo.com_IMG_3241.jpg" height="533" width="800" class="img-responsive">
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<script>
+    {% block script %}
+        window.onload = function() {
+            const show_time = document.getElementById("showTime");
+            setInterval(function() {
+                const curDate = new Date();
+                const year = curDate.getFullYear() + ' 年 ';
+                const month = curDate.getMonth()+1 + ' 月 ';
+                const date= curDate.getDate() + ' 日 ';
+
+                const hour= curDate.getHours() + ':';
+                const minute= curDate.getMinutes() + ':';
+                const second= curDate.getSeconds();
+
+                show_time.innerHTML = year + month + date + hour + minute + second;
+            }, 1000);
+        };
+    {% endblock %}
+</script>

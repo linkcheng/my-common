@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block css %}
+
+
+{% endblock %}
+
+
+{% block content %}
+    <div class="page-title">
+        <span class="title">{{ action_name }} {{ connector.name }}</span>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div class="card">
+                <div class="card-body">
+                    <a style="color: #007fff" href="/monitor/connectors">返回</a>
+                    <form>
+                        <h3>基础配置</h3>
+                        <input type="text" hidden id="cid" value="{{ connector.id }}"/>
+                        <div class="form-group">
+                            <label for="name">连接器名称*</label>
+                            <input type="text" class="form-control" id="name" value="{{ connector.name }}"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="connector_class">连接器类*</label>
+                            <input type="text" class="form-control" id="connector_class" value="{{ connector.connector_class }}"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="tasks_max">最大任务数*</label>
+                            <input type="text" class="form-control" id="tasks_max" value="{{ connector.tasks_max }}"/>
+                        </div>
+
+                        <h3>kafka 配置</h3>
+                        <div class="form-group">
+                            <label for="history_kafka_topic">历史记录恢复 topic *</label>
+                            <input type="text" class="form-control" id="history_kafka_topic" value="{{ connector.history_kafka_topic }}" placeholder="必须确保已经创建"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="history_kafka_servers">用于恢复的 kafka 集群地址*</label>
+                            <input type="text" class="form-control" id="history_kafka_servers" value="{{ connector.history_kafka_servers }}"/>
+                        </div>
+
+                        <h3>数据库配置</h3>
+                        <div class="form-group">
+                            <label for="database">连接的目标数据库*</label>
+                            <select id="database" class="form-control" >
+                                {% for db in databases %}
+                                    {% if db.id == connector.database.id %}
+                                        <option value="{{ db.id }}" selected>{{ db.name }}</option>
+                                    {% else %}
+                                        <option value="{{ db.id }}">{{ db.name }}</option>
+                                    {%  endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="server_id">数据库唯一标识（必须唯一）*</label>
+                            <input type="text" class="form-control" id="server_id" value="{{ connector.server_id }}" placeholder="标识不能重复"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="server_name">连接器中数据库对应名称（必须唯一）*</label>
+                            <input type="text" class="form-control" id="server_name" value="{{ connector.server_name }}" placeholder="名称必须唯一"/>
+                        </div>
+
+                        <h3>库过滤器配置</h3>
+                        <div class="form-group">
+                            <label for="schema_whitelist">库白名单*</label>
+                            <input type="text" class="form-control" id="schema_whitelist" value="{{ connector.schema_whitelist }}" placeholder="逗号分隔的正则表达式列表"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="schema_blacklist">库黑名单*</label>
+                            <input type="text" class="form-control" id="schema_blacklist" value="{{ connector.schema_blacklist }}" placeholder="逗号分隔的正则表达式列表，黑白名单不同时生效"/>
+                        </div>
+
+                        <h3>表过滤器配置</h3>
+                        <div class="form-group">
+                            <label for="table_whitelist">表白名单*</label>
+                            <input type="text" class="form-control" id="table_whitelist" value="{{ connector.table_whitelist }}" placeholder="逗号分隔的正则表达式列表"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="table_blacklist">表黑名单*</label>
+                            <input type="text" class="form-control" id="table_blacklist" value="{{ connector.table_blacklist }}" placeholder="逗号分隔的正则表达式列表，黑白名单不同时生效"/>
+                        </div>
+
+                        <h3>其他</h3>
+                        <div class="form-group">
+                            <label for="isActiveDDL">是否监听DDL语句</label>
+                            <div>
+                                <div class="radio3 radio-check radio-inline">
+                                  <input type="radio" id="ddlActive" name="isActiveDDL" {% if connector.include_schema_changes %} checked {% endif %} value="1" />
+                                  <label for="ddlActive">
+                                    是
+                                  </label>
+                                </div>
+                                <div class="radio3 radio-check radio-inline">
+                                  <input type="radio" id="ddlInactive" name="isActiveDDL" {% if not connector.include_schema_changes %} checked {% endif %}  value="0" />
+                                  <label for="ddlInactive">
+                                    否
+                                  </label>
+                                </div>
+                              </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="isActive">是否有效</label>
+                            <div>
+                                <div class="radio3 radio-check radio-inline">
+                                  <input type="radio" id="active" name="isActive" {% if not connector.is_deleted %} checked {% endif %} value="0" />
+                                  <label for="active">
+                                    有效
+                                  </label>
+                                </div>
+                                <div class="radio3 radio-check radio-inline">
+                                  <input type="radio" id="inactive" name="isActive" {% if connector.is_deleted %} checked {% endif %}  value="1" />
+                                  <label for="inactive">
+                                    无效
+                                  </label>
+                                </div>
+                              </div>
+                        </div>
+
+
+                        <div >
+                            <button type="button" class="btn btn-primary" onclick="confirm()">提交</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block script %}
+
+    function confirm() {
+        const cid = $('#cid').val();
+        const name = $('#name').val();
+        const connector_class = $('#connector_class').val();
+        const tasks_max = $('#tasks_max').val();
+        const history_kafka_topic = $('#history_kafka_topic').val();
+        const history_kafka_servers = $('#history_kafka_servers').val();
+        const database = $('#database').val();
+        const server_id = $('#server_id').val();
+        const server_name = $('#server_name').val();
+        const schema_whitelist = $('#schema_whitelist').val();
+        const schema_blacklist = $('#schema_blacklist').val();
+        const table_whitelist = $('#table_whitelist').val();
+        const table_blacklist = $('#table_blacklist').val();
+        const include_schema_changes = $('input[name="isActiveDDL"]:checked').val();
+        const is_deleted = $('input[name="isActive"]:checked').val();
+
+        $.ajax({
+            url: '/monitor/connectors/',
+            type: 'POST',
+            data: {
+                'cid': cid,
+                'action': '{{ action }}',
+                'name': name,
+                'connector_class': connector_class,
+                'tasks_max': tasks_max,
+                'history_kafka_topic': history_kafka_topic,
+                'history_kafka_servers': history_kafka_servers,
+                'database': parseInt(database),
+                'server_id': server_id,
+                'server_name': server_name,
+                'schema_whitelist': schema_whitelist,
+                'schema_blacklist': schema_blacklist,
+                'table_whitelist': table_whitelist,
+                'table_blacklist': table_blacklist,
+                'include_schema_changes': include_schema_changes,
+                'is_deleted': is_deleted,
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.status === 'success') {
+                    window.location.href = '/monitor/connectors/'
+                } else {
+                    alert(data.message)
+                }
+            }
+        })
+    }
+
+
+{% endblock %}
